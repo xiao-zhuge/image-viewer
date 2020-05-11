@@ -9,8 +9,8 @@ export default class App extends React.Component {
         // 额外属性
         this.pointType = 'default';
         // 绑定全局尺寸变化
-        const { scaleNum } = this.state;
-        window.onresize = () => this._mouseEnterImg(scaleNum);
+        const { scaling } = this.state;
+        window.onresize = () => this._mouseEnterImg(scaling);
         // 接收消息
         try {
             const ipcRenderer = window.electron.ipcRenderer;
@@ -26,25 +26,25 @@ export default class App extends React.Component {
         imgs: ['https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1589185562616&di=532ad9974639cd4e863cf795e66e3dc4&imgtype=0&src=http%3A%2F%2Ft8.baidu.com%2Fit%2Fu%3D1484500186%2C1503043093%26fm%3D79%26app%3D86%26f%3DJPEG%3Fw%3D1280%26h%3D853'],
         // 本地组件数据
         rotateAngle: 0, // 旋转角度
-        scaleNum: 1, // 缩放比例
+        scaling: 1, // 缩放比例
         moveX: 0, // 移动的宽度
         moveY: 0, // 移动的高度
         leftBtnShow: false, // 向左按钮显示
         rightBtnshow: false
     };
     _large(num) {
-        let { scaleNum } = this.state;
-        scaleNum = Math.trunc(scaleNum) >= 10 ? 10 : scaleNum + num;
+        let { scaling } = this.state;
+        scaling = Math.trunc(scaling) >= 10 ? 10 : scaling + num; // 缩放最大10倍
         this.setState({
-            scaleNum
+            scaling
         });
-        this._mouseEnterImg(scaleNum);
+        this._mouseEnterImg(scaling);
     }
     _small(num) {
-        let { scaleNum, moveX, moveY } = this.state;
-        scaleNum = scaleNum - num <= 0.1 ? 0.1 : scaleNum - num;
+        let { scaling, moveX, moveY } = this.state;
+        scaling = scaling - num <= 0.1 ? 0.1 : scaling - num; // 缩放最小0.1倍
         if (this.pointType === 'move') {
-            let n = Math.round((scaleNum - 1) / num);
+            let n = Math.round((scaling - 1) / num);
             if (moveX !== 0) {
                 moveX -= moveX / n;
             }
@@ -56,11 +56,11 @@ export default class App extends React.Component {
             moveY = 0;
         }
         this.setState({
-            scaleNum,
+            scaling,
             moveX,
             moveY
         });
-        this._mouseEnterImg(scaleNum);
+        this._mouseEnterImg(scaling);
     }
     // 滚轮滚动
     _mouseWheel = e => {
@@ -79,25 +79,25 @@ export default class App extends React.Component {
         }
         this.setState({
             rotateAngle,
-            scaleNum: 1
+            scaling: 1
         });
     };
     _download = () => {
         let aD = document.createElement('a');
         aD.href = this.refImg.src;
-        aD.download = `UU图片_${new Date().getTime() * Math.floor(Math.random() * 10000)}`;
+        aD.download = `图片_${new Date().getTime() * Math.floor(Math.random() * 10000)}`;
         aD.click();
     };
     // 鼠标按下
     _mouseDown = e => {
         e.preventDefault();
-        const { scaleNum } = this.state;
+        const { scaling } = this.state;
         if (this.pointType === 'default') return;
         // 获取img-box img的宽度和高度
         const boxW = document.body.clientWidth;
         const boxH = document.body.clientHeight - 26 - 60;
-        const imgW = this.refImg.width * scaleNum;
-        const imgH = this.refImg.height * scaleNum;
+        const imgW = this.refImg.width * scaling;
+        const imgH = this.refImg.height * scaling;
         let startX = e.clientX; // 鼠标按下的位置
         let startY = e.clientY;
         this.refImg.onmousemove = e => {
@@ -108,32 +108,32 @@ export default class App extends React.Component {
             let disX = currentX - startX; // 鼠标移动的像素 往右 往上是正数
             let disY = currentY - startY;
             if (imgW > boxW) {
-                if (disX > 0 && (imgW - boxW) / 2 - moveX * scaleNum > 0) {
+                if (disX > 0 && (imgW - boxW) / 2 - moveX * scaling > 0) {
                     // 往右走
-                    moveX += disX / scaleNum;
-                    if ((imgW - boxW) / 2 - moveX * scaleNum < 0) {
-                        moveX = (imgW - boxW) / 2 / scaleNum;
+                    moveX += disX / scaling;
+                    if ((imgW - boxW) / 2 - moveX * scaling < 0) {
+                        moveX = (imgW - boxW) / 2 / scaling;
                     }
-                } else if (disX < 0 && (imgW - boxW) / 2 + moveX * scaleNum > 0) {
+                } else if (disX < 0 && (imgW - boxW) / 2 + moveX * scaling > 0) {
                     // 往左走
-                    moveX += disX / scaleNum;
-                    if ((imgW - boxW) / 2 + moveX * scaleNum < 0) {
-                        moveX = ((imgW - boxW) / 2 / scaleNum) * -1;
+                    moveX += disX / scaling;
+                    if ((imgW - boxW) / 2 + moveX * scaling < 0) {
+                        moveX = ((imgW - boxW) / 2 / scaling) * -1;
                     }
                 }
             }
             if (imgH > boxH) {
-                if (disY > 0 && (imgH - boxH) / 2 - moveY * scaleNum > 0) {
+                if (disY > 0 && (imgH - boxH) / 2 - moveY * scaling > 0) {
                     // 往下走
-                    moveY += disY / scaleNum;
-                    if ((imgH - boxH) / 2 - moveY * scaleNum < 0) {
-                        moveY = (imgH - boxH) / 2 / scaleNum;
+                    moveY += disY / scaling;
+                    if ((imgH - boxH) / 2 - moveY * scaling < 0) {
+                        moveY = (imgH - boxH) / 2 / scaling;
                     }
-                } else if (disY < 0 && (imgH - boxH) / 2 + moveY * scaleNum > 0) {
+                } else if (disY < 0 && (imgH - boxH) / 2 + moveY * scaling > 0) {
                     // 往上走
-                    moveY += disY / scaleNum;
-                    if ((imgH - boxH) / 2 + moveY * scaleNum < 0) {
-                        moveY = ((imgH - boxH) / 2 / scaleNum) * -1;
+                    moveY += disY / scaling;
+                    if ((imgH - boxH) / 2 + moveY * scaling < 0) {
+                        moveY = ((imgH - boxH) / 2 / scaling) * -1;
                     }
                 }
             }
@@ -155,10 +155,10 @@ export default class App extends React.Component {
         };
     };
     // 鼠标进入图片，设置标识
-    _mouseEnterImg = scaleNum => {
+    _mouseEnterImg = scaling => {
         const clientW = document.body.clientWidth;
         const clientH = document.body.clientHeight - 26 - 60;
-        if (scaleNum * this.refImg.width > clientW || scaleNum * this.refImg.height > clientH) {
+        if (scaling * this.refImg.width > clientW || scaling * this.refImg.height > clientH) {
             this.pointType = 'move';
         } else {
             this.pointType = 'default';
@@ -204,7 +204,7 @@ export default class App extends React.Component {
             this.setState({
                 curImgIndex: curImgIndex - 1,
                 rotateAngle: 0,
-                scaleNum: 1,
+                scaling: 1,
                 moveX: 0,
                 moveY: 0
             });
@@ -213,21 +213,21 @@ export default class App extends React.Component {
             this.setState({
                 curImgIndex: curImgIndex + 1,
                 rotateAngle: 0,
-                scaleNum: 1,
+                scaling: 1,
                 moveX: 0,
                 moveY: 0
             });
         }
     };
     render() {
-        const { type, rotateAngle, scaleNum, moveX, moveY, curImgIndex, imgs, leftBtnShow, rightBtnshow } = this.state;
+        const { type, rotateAngle, scaling, moveX, moveY, curImgIndex, imgs, leftBtnShow, rightBtnshow } = this.state;
         // 要显示的图片路由
-        let url = imgs[0];
+        let url = imgs[curImgIndex];
         return (
             <div className="app">
                 <Header></Header>
                 <div className="img-box" ref={imgBox => (this.refImgBox = imgBox)} onMouseMove={this._mouseMoveChoose} onMouseLeave={this._mouseLeaveChoose}>
-                    <img ref={img => (this.refImg = img)} src={url} alt="img" style={{ transform: `rotate(${rotateAngle}deg) scale(${scaleNum},${scaleNum}) translate(${moveX}px,${moveY}px)`, cursor: this.pointType }} onMouseEnter={() => this._mouseEnterImg(scaleNum)} onWheel={this._mouseWheel} onMouseDown={this._mouseDown} />
+                    <img ref={img => (this.refImg = img)} src={url} alt="img" style={{ transform: `rotate(${rotateAngle}deg) scale(${scaling},${scaling}) translate(${moveX}px,${moveY}px)`, cursor: this.pointType }} onMouseEnter={() => this._mouseEnterImg(scaling)} onWheel={this._mouseWheel} onMouseDown={this._mouseDown} />
                 </div>
                 {type === 'images' && (
                     <div className="choose">
